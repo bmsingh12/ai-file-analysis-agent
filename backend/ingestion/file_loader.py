@@ -1,4 +1,4 @@
-from langchain_classic.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoader
 import pandas as pd
 
 def load_pdf(path):

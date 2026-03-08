@@ -1,17 +1,23 @@
-from langchain_community.chains import RetrievalQA
-from langchain.chat_models import ChatOpenAI
+from langchain_community.vectorstores import FAISS
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain_classic.chains.retrieval_qa.base import RetrievalQA
 
-def build_agent(vectorstore):
+# Global variable to store the agent
+qa_agent = None
 
-    retriever = vectorstore.as_retriever()
+def init_agent(docs):
+    """Initialize the RetrievalQA agent from documents."""
+    global qa_agent
 
-    llm = ChatOpenAI(
-        temperature=0
-    )
+    embeddings = OpenAIEmbeddings()
+    vector_store = FAISS.from_documents(docs, embeddings)
+    retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
 
-    chain = RetrievalQA.from_chain_type(
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+
+    qa_agent = RetrievalQA.from_chain_type(
         llm=llm,
         retriever=retriever
     )
 
-    return chain
+    return qa_agent
