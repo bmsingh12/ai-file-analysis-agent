@@ -1,3 +1,5 @@
+import os
+
 from fastapi import APIRouter, UploadFile, File
 from backend.ingestion.file_loader import load_pdf
 from backend.services.chunker import chunk_documents
@@ -17,5 +19,7 @@ async def upload_file(file: UploadFile = File(...)):
 
     # Initialize agent
     init_agent(chunks)
+    
+    # os.remove(filename)
 
     return {"filename": file.filename, "chunks_created": len(chunks)}

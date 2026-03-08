@@ -1,23 +1,29 @@
+from langchain_classic.chains import RetrievalQA
+from langchain_community.llms import Ollama
 from langchain_community.vectorstores import FAISS
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from langchain_classic.chains.retrieval_qa.base import RetrievalQA
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
-# Global variable to store the agent
 qa_agent = None
 
-def init_agent(docs):
-    """Initialize the RetrievalQA agent from documents."""
+def init_agent(chunks):
     global qa_agent
 
-    embeddings = OpenAIEmbeddings()
-    vector_store = FAISS.from_documents(docs, embeddings)
-    retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": 3})
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
 
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    vector_store = FAISS.from_documents(chunks, embeddings)
+
+    retriever = vector_store.as_retriever(search_kwargs={"k": 3})
+
+    llm = Ollama(
+        model="phi",
+        base_url="http://host.docker.internal:11434"
+    )
 
     qa_agent = RetrievalQA.from_chain_type(
         llm=llm,
         retriever=retriever
     )
 
-    return qa_agent
+    print("Agent initialized")
