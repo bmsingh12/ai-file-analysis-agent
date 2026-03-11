@@ -7,9 +7,18 @@ from uuid import uuid4
 
 
 @dataclass
+class SourceCitation:
+    filename: str | None
+    page: int | None
+    chunk_index: int | None
+    content: str
+
+
+@dataclass
 class ChatMessage:
     role: str
     content: str
+    sources: List[SourceCitation] | None = None
 
 
 @dataclass
@@ -34,13 +43,21 @@ class InMemoryChatStore:
         with self._lock:
             return self._sessions.get(session_id)
 
-    def add_message(self, session_id: str, role: str, content: str) -> None:
+    def add_message(
+        self,
+        session_id: str,
+        role: str,
+        content: str,
+        sources: List[SourceCitation] | None = None,
+    ) -> None:
         with self._lock:
             session = self._sessions.get(session_id)
             if session is None:
                 raise ValueError(f"Session {session_id} not found")
 
-            session.messages.append(ChatMessage(role=role, content=content))
+            session.messages.append(
+                ChatMessage(role=role, content=content, sources=sources)
+            )
 
     def get_messages(self, session_id: str) -> List[ChatMessage]:
         with self._lock:

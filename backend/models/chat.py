@@ -10,9 +10,17 @@ class AskRequest(BaseModel):
     question: str
 
 
+class SourceCitationResponse(BaseModel):
+    filename: str | None = None
+    page: int | None = None
+    chunk_index: int | None = None
+    content: str
+
+
 class ChatMessageResponse(BaseModel):
     role: str
     content: str
+    sources: list[SourceCitationResponse] | None = None
 
 
 class AskResponse(BaseModel):

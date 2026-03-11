@@ -1,8 +1,13 @@
 from fastapi import APIRouter, HTTPException
 
 from backend.agents import file_agent
-from backend.models.chat import AskRequest, AskResponse, ChatMessageResponse
-from backend.services.chat_store import chat_store
+from backend.models.chat import (
+    AskRequest,
+    AskResponse,
+    ChatMessageResponse,
+    SourceCitationResponse,
+)
+from backend.services.chat_store import SourceCitation, chat_store
 
 router = APIRouter(tags=["query"])
 
@@ -18,7 +23,6 @@ async def ask_question(payload: AskRequest) -> AskResponse:
 
     messages = chat_store.get_messages(payload.session_id)
 
-    # Build LangChain-compatible history: [(human, ai), ...]
     chat_history: list[tuple[str, str]] = []
     current_human: str | None = None
 
@@ -38,9 +42,26 @@ async def ask_question(payload: AskRequest) -> AskResponse:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     answer = result["answer"]
+    source_documents = result.get("source_documents", [])
+
+    sources: list[SourceCitation] = []
+    for doc in source_documents:
+        sources.append(
+            SourceCitation(
+                filename=doc.metadata.get("filename"),
+                page=doc.metadata.get("page"),
+                chunk_index=doc.metadata.get("chunk_index"),
+                content=doc.page_content,
+            )
+        )
 
     chat_store.add_message(payload.session_id, "user", payload.question)
-    chat_store.add_message(payload.session_id, "assistant", answer)
+    chat_store.add_message(
+        payload.session_id,
+        "assistant",
+        answer,
+        sources=sources,
+    )
 
     updated_messages = chat_store.get_messages(payload.session_id)
 
@@ -48,7 +69,21 @@ async def ask_question(payload: AskRequest) -> AskResponse:
         answer=answer,
         session_id=payload.session_id,
         messages=[
-            ChatMessageResponse(role=msg.role, content=msg.content)
+            ChatMessageResponse(
+                role=msg.role,
+                content=msg.content,
+                sources=[
+                    SourceCitationResponse(
+                        filename=source.filename,
+                        page=source.page,
+                        chunk_index=source.chunk_index,
+                        content=source.content,
+                    )
+                    for source in (msg.sources or [])
+                ]
+                if msg.sources
+                else None,
+            )
             for msg in updated_messages
         ],
     )
