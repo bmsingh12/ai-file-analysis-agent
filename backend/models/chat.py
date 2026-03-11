@@ -12,6 +12,7 @@ class AskRequest(BaseModel):
 
 class SourceCitationResponse(BaseModel):
     filename: str | None = None
+    file_url: str | None = None
     page: int | None = None
     chunk_index: int | None = None
     content: str

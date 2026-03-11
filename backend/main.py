@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from backend.api import upload, query, chat
 
 app = FastAPI()
 
-# Allow your frontend origin
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -18,7 +18,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
+app.mount("/uploaded-files", StaticFiles(directory="uploaded_files"), name="uploaded-files")
+
 app.include_router(upload.router)
 app.include_router(query.router)
 app.include_router(chat.router)

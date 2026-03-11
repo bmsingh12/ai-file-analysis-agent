@@ -9,6 +9,7 @@ from uuid import uuid4
 @dataclass
 class SourceCitation:
     filename: str | None
+    file_url: str | None
     page: int | None
     chunk_index: int | None
     content: str

@@ -83,6 +83,7 @@ async def ask_question(payload: AskRequest) -> AskResponse:
             sources.append(
                 SourceCitation(
                     filename=doc.metadata.get("filename"),
+                    file_url=doc.metadata.get("file_url"),
                     page=doc.metadata.get("page"),
                     chunk_index=doc.metadata.get("chunk_index"),
                     content=doc.page_content,
@@ -109,6 +110,7 @@ async def ask_question(payload: AskRequest) -> AskResponse:
                 sources=[
                     SourceCitationResponse(
                         filename=source.filename,
+                        file_url=source.file_url,
                         page=source.page,
                         chunk_index=source.chunk_index,
                         content=source.content,
