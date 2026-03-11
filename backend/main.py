@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.api import upload, query
+from backend.api import upload, query, chat
 
 app = FastAPI()
 
@@ -21,6 +21,7 @@ app.add_middleware(
 # Include routers
 app.include_router(upload.router)
 app.include_router(query.router)
+app.include_router(chat.router)
 
 @app.get("/")
 def root():
